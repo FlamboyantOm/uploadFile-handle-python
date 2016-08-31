@@ -1,0 +1,113 @@
+<div class="col-lg-12">
+			<div class="form-group">
+				<label for="nofile">Added Files<span class="required-field"> *</span></label>
+				<div id="nofile"><span class="label label-default">No initialization File Uploaded.</span></div><div id="fileTags"></div>
+			</div>
+			<script src="{% static 'portal/js/SimpleAjaxUploader.js' %}"></script>
+			<div class="content-box">
+			   <input type="button" id="upload-btn" class="btn btn-primary btn-large clearfix " value="Choose files">
+				<div id="errormsg" class="clearfix redtext" style="padding-top: 10px;"></div>
+				<div id="progressBox" class="progress-wrap" style="margin-top:10px;margin-bottom:10px;"></div>
+				<div class="clear-line" style="margin-top:10px;"></div>
+			</div>
+			<input type="hidden" name="ini_file_ids" id="ini_file_ids" value="{{data.ClusterFileIds}}" >
+		<script>
+		  var AddedFiles = 0;
+		  var fileArray = [] ;
+		  function removeFile(fileId){
+			console.log(fileId);
+			console.log(fileArray);
+			console.log(fileArray.indexOf(fileId));
+			myIndex = fileArray.indexOf(fileId);
+			if (myIndex !=(-1)){
+				fileArray.splice(myIndex,1);
+				jQuery("#ini_file_ids").val(JSON.parse(JSON.stringify(fileArray)));
+				jQuery('#tag-'+fileId).remove();
+
+				if (fileArray.length == 0) jQuery("#nofile").show();
+			}
+		   console.log(fileArray);
+			}
+		  var btn = document.getElementById('upload-btn'),
+			  wrap = document.getElementById('pic-progress-wrap'),
+			  picBox = document.getElementById('picbox'),
+			  errBox = document.getElementById('errormsg');
+
+		  var uploader = new ss.SimpleUpload({
+				button: btn,
+				url: '/ini/file/',
+				progressUrl: '/ini/file/?type=progress',
+				name: 'myfile',
+				multiple: true,
+				multipart: true,
+				maxUploads: 10,
+				maxSize: 10211111111114,
+				queue: false,
+				debug: true,
+				hoverClass: 'btn-hover',
+				focusClass: 'active',
+				disabledClass: 'disabled',
+				responseType: 'json',
+				allowedExtensions : ['ini'],
+				onSubmit: function(filename, ext) {
+				 errBox.innerHTML = '';
+				 var progress = document.createElement('div'), // container for progress bar
+					  bar = document.createElement('div'), // actual progress bar
+					  fileSize = document.createElement('div'), // container for upload file size
+					  wrapper = document.createElement('div'), // container for this progress bar
+					  //declare somewhere: <div id="progressBox"></div> where you want to show the progress-bar(s)
+					  progressBox = document.getElementById('progressBox'); //on page container for progress bars
+
+				  // Assign each element its corresponding class
+				  progress.className = 'progress progress-striped';
+				  bar.className = 'progress-bar progress-bar-success';
+				  fileSize.className = 'size';
+				  wrapper.className = 'wrapper';
+
+				  // Assemble the progress bar and add it to the page
+				  progress.appendChild(bar);
+				  wrapper.innerHTML = '<div class="name">'+filename+'</div>'; // filename is passed to onSubmit()
+				  wrapper.appendChild(fileSize);
+				  wrapper.appendChild(progress);
+				  progressBox.appendChild(wrapper); // just an element on the page to hold the progress bars
+
+				  // Assign roles to the elements of the progress bar
+				  this.setProgressBar(bar); // will serve as the actual progress bar
+				  this.setFileSizeBox(fileSize); // display file size beside progress bar
+				  this.setProgressContainer(wrapper); // designate the containing div to be removed after upload
+				  },
+				  onSizeError: function() {
+							   errBox.innerHTML = '<div class="alert alert-danger" role="alert">  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>  <span class="sr-only">Error:</span>  Files may not exceed 1024K.!</div>';
+							   jQuery('.alert-danger').delay(2000).fadeOut(1000)
+				  },
+				  onExtError: function() {
+						errBox.innerHTML = '<div class="alert alert-danger" role="alert">  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>  <span class="sr-only">Error:</span>  Invalid file type. Please select .ini extension file!</div>';
+							   jQuery('.alert-danger').delay(2000).fadeOut(1000)
+				  },
+				onComplete: function(file, response, btn) {
+					if (!response) {
+					  errBox.innerHTML = 'Unable to upload file';
+					  errBox.innerHTML = '<div class="alert alert-danger" role="alert">  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>  <span class="sr-only">Error:</span>Unable to upload file.!</div>';
+							   jQuery('.alert-danger').delay(2000).fadeOut(1000)
+					}
+					if (response.success === true) {
+					   if (fileArray.length == 0)
+						 jQuery("#nofile").hide();
+					   if('{{clusterFiles}}'.length > 2)
+					   {
+						  jQuery("#nofile").show();
+					   }
+					   fileArray.push(response.response);
+					   jQuery("#ini_file_ids").val(JSON.parse(JSON.stringify(fileArray)));
+					   jQuery("#fileTags").append('<span id="tag-'+response.response+'" class="label label-success">'+response.name+' <span  class="glyphicon glyphicon-remove-sign" onClick="removeFile('+response.response+');" ></span>  </span>');
+					} else {
+						errBox.innerHTML = '<div class="alert alert-danger" role="alert">  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>  <span class="sr-only">Error:</span>  Error in uploading File(s)!</div>';
+						jQuery('.alert-danger').delay(2000).fadeOut(1000)
+					}
+				 }
+			});
+		</script>
+
+
+
+    </div>
